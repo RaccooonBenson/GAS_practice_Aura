@@ -8,7 +8,7 @@
 
 AAuraPlayerController::AAuraPlayerController()
 {
-	//»á¸´ÖÆ×´Ì¬µ½ËùÓĞ·şÎñÆ÷
+	//ä¼šå¤åˆ¶çŠ¶æ€åˆ°æ‰€æœ‰æœåŠ¡å™¨
 	bReplicates = true;
 
 }
@@ -17,7 +17,7 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 
-	//È·ÈÏ¹â±êÏÂÃæÊÇÊ²Ã´
+	//ç¡®è®¤å…‰æ ‡ä¸‹é¢æ˜¯ä»€ä¹ˆ
 	CursorTrace();
 }
 
@@ -26,18 +26,18 @@ void AAuraPlayerController::CursorTrace()
 	FHitResult CursorHit;
 	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
 	if (!CursorHit.bBlockingHit) return;
-	//¸üĞÂÉÏÏÂÖ¡ËùÖ¸ÎïÌå
+	//æ›´æ–°ä¸Šä¸‹å¸§æ‰€æŒ‡ç‰©ä½“
 	LastActor = ThisActor;
-	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	ThisActor = CursorHit.GetActor();
 
-	/* ¸ù¾İ¼¸¸ö²»Í¬Çé¿ö£º
-	* 1. LastºÍThis ¶¼ÊÇ null £» ¡ª¡ªnothing
-	* 2. Last ÊÇ null £¬This ÊÇValid£»¡ª¡ªHighlight This
-	* 3. Last ÊÇ Valid £¬ this ÊÇnull  ¡ª¡ª UnHighlight Last
-	* 4. Both Valid £¬ Last £¡= This ¡ª¡ª UnHighlight Last £¬ Highlight This
-	* 5. Last == This ¡ª¡ªnothing
+	/* æ ¹æ®å‡ ä¸ªä¸åŒæƒ…å†µï¼š
+	* 1. Lastå’ŒThis éƒ½æ˜¯ null ï¼› â€”â€”nothing
+	* 2. Last æ˜¯ null ï¼ŒThis æ˜¯Validï¼›â€”â€”Highlight This
+	* 3. Last æ˜¯ Valid ï¼Œ this æ˜¯null  â€”â€” UnHighlight Last
+	* 4. Both Valid ï¼Œ Last ï¼= This â€”â€” UnHighlight Last ï¼Œ Highlight This
+	* 5. Last == This â€”â€”nothing
 	*/
-	//ËµÊÇLast £¡= NULL ´¥·¢ÆµÂÊÌ«¸ß»á±¬ÉÁ
+	//è¯´æ˜¯Last ï¼= NULL è§¦å‘é¢‘ç‡å¤ªé«˜ä¼šçˆ†é—ª
 	if (ThisActor != LastActor)
 	{
 		if (LastActor != nullptr)  LastActor->UnHighlightActor();
@@ -52,16 +52,18 @@ void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	check(AuraContext);
-	//Ìí¼ÓMapping
+	//æ·»åŠ Mapping
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(Subsystem);
-	Subsystem->AddMappingContext(AuraContext, 0);
+	if (Subsystem)
+	{
+		Subsystem->AddMappingContext(AuraContext, 0);
+	}
 
-	//ÏÔÊ¾Êó±ê
+	//æ˜¾ç¤ºé¼ æ ‡
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 
-	//ÉèÖÃÊäÈëÄ£Ê½
+	//è®¾ç½®è¾“å…¥æ¨¡å¼
 	FInputModeGameAndUI InputModeData;
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputModeData.SetHideCursorDuringCapture(false);
@@ -72,29 +74,29 @@ void AAuraPlayerController::BeginPlay()
 void AAuraPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	//»ñÈ¡InputComponent
+	//è·å–InputComponent
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-	//°ó¶¨º¯ÊıÓëInputAction
+	//ç»‘å®šå‡½æ•°ä¸InputAction
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
-	//»ñÈ¡InputValue
+	//è·å–InputValue
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
-	//»ñÈ¡Êó±êRotation
+	//è·å–é¼ æ ‡Rotation
 	const FRotator Rotation = GetControlRotation();
-	//µ¥¶À»ñÈ¡Êó±êYaw
+	//å•ç‹¬è·å–é¼ æ ‡Yaw
 	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
 
-	//Ê¹ÓÃYaw»ñµÃdirection
+	//ä½¿ç”¨Yawè·å¾—direction
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-	//½«MoveInputÌí¼Óµ½±»²Ù¿ØÆå×ÓPawn
+	//å°†MoveInputæ·»åŠ åˆ°è¢«æ“æ§æ£‹å­Pawn
 	if (APawn* ControlledPawn = GetPawn<APawn>())
 	{
-		//½«·½ÏòºÍInputÀïÃæµÄ·ñ¶¨ÖµÏà½áºÏ
+		//å°†æ–¹å‘å’ŒInputé‡Œé¢çš„å¦å®šå€¼ç›¸ç»“åˆ
 		ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 	}
